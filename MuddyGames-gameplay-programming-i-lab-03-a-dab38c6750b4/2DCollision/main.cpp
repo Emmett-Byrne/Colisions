@@ -93,6 +93,9 @@ int main()
 	animated_sprite.addFrame(sf::IntRect(343, 3, 84, 84));
 	animated_sprite.addFrame(sf::IntRect(428, 3, 84, 84));
 
+	//changing poition  for science
+	animated_sprite.setPosition(85, 85);
+
 	// Setup Players AABB
 	c2AABB aabb_player;
 	aabb_player.min = c2V(animated_sprite.getPosition().x, animated_sprite.getPosition().y);
@@ -124,6 +127,7 @@ int main()
 	// Start the game loop
 	while (window.isOpen())
 	{
+		//std::cout << animated_sprite.getPosition().x << std::endl;
 		// Move Sprite Follow Mouse
 		mouse.setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
 
@@ -177,16 +181,7 @@ int main()
 			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
 		}
 
-		result = c2AABBtoPoly(aabb_mouse, &poly_player, NULL);
-		cout << ((result != 0) ? ("Collision") : "") << endl;
-		if (result) {
-			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
-		}
-		else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
-		}
-
-		/*result = c2AABBtoCapsule(aabb_mouse, capsule_player);
+		/*result = c2AABBtoPoly(aabb_mouse, &poly_player, NULL);
 		cout << ((result != 0) ? ("Collision") : "") << endl;
 		if (result) {
 			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
@@ -195,14 +190,23 @@ int main()
 			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
 		}*/
 
+		result = c2AABBtoCapsule(aabb_mouse, capsule_player);
+		cout << ((result != 0) ? ("Collision") : "") << endl;
+		if (result) {
+			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
+		}
+		else {
+			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
+		}
+
 		// Clear screen
 		window.clear();
 
 		// Draw the Players Current Animated Sprite
 		window.draw(player.getAnimatedSprite());
-		window.draw(capsule);
-		//draw(capsule_player, window);
-		window.draw(polygon);
+		//window.draw(capsule);
+		draw(capsule_player, window);
+		//window.draw(polygon);
 		window.draw(mouse);
 
 		// Update the window
