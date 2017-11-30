@@ -77,12 +77,12 @@ int main()
 
 	sf::Sprite polygon;
 	polygon.setTexture(polygon_texture);
-	polygon.setPosition(150, 10);
+	polygon.setPosition(450, 10);
 
 	//Setup mouse AABB
 	c2AABB aabb_mouse;
 	aabb_mouse.min = c2V(mouse.getPosition().x, mouse.getPosition().y);
-	aabb_mouse.max = c2V(mouse.getGlobalBounds().width, mouse.getGlobalBounds().width);
+	aabb_mouse.max = c2V(mouse.getGlobalBounds().width, mouse.getGlobalBounds().height);
 
 	// Setup Players Default Animated Sprite
 	AnimatedSprite animated_sprite(sprite_sheet);
@@ -94,7 +94,7 @@ int main()
 	animated_sprite.addFrame(sf::IntRect(428, 3, 84, 84));
 
 	//changing poition  for science
-	animated_sprite.setPosition(85, 85);
+	//animated_sprite.setPosition(85, 85);
 
 	// Setup Players AABB
 	c2AABB aabb_player;
@@ -107,6 +107,7 @@ int main()
 	capsule_player.a = c2V(capsule.getPosition().x + capsule.getGlobalBounds().height / 2, capsule.getPosition().y + capsule.getGlobalBounds().height / 2);
 	capsule_player.b = c2V(capsule.getPosition().x + capsule.getGlobalBounds().width - capsule.getGlobalBounds().height / 2, capsule.getPosition().y + capsule.getGlobalBounds().height / 2);
 	capsule_player.r = capsule.getGlobalBounds().height / 2;
+
 
 	c2Poly poly_player;
 	poly_player.count = 4;
@@ -133,7 +134,7 @@ int main()
 
 		// Update mouse AABB
 		aabb_mouse.min = c2V(mouse.getPosition().x, mouse.getPosition().y);
-		aabb_mouse.max = c2V(mouse.getGlobalBounds().width, mouse.getGlobalBounds().width);
+		aabb_mouse.max = c2V(mouse.getPosition().x + mouse.getGlobalBounds().width, mouse.getPosition().y + mouse.getGlobalBounds().width);
 
 		// Process events
 		sf::Event event;
@@ -172,14 +173,14 @@ int main()
 		player.update();
 
 		// Check for collisions
-		result = c2AABBtoAABB(aabb_mouse, aabb_player);
+		/*result = c2AABBtoAABB(aabb_mouse, aabb_player);
 		cout << ((result != 0) ? ("Collision") : "") << endl;
 		if (result){
 			player.getAnimatedSprite().setColor(sf::Color(255,0,0));
 		}
 		else {
 			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
-		}
+		}*/
 
 		/*result = c2AABBtoPoly(aabb_mouse, &poly_player, NULL);
 		cout << ((result != 0) ? ("Collision") : "") << endl;
@@ -190,23 +191,26 @@ int main()
 			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
 		}*/
 
-		result = c2AABBtoCapsule(aabb_mouse, capsule_player);
-		cout << ((result != 0) ? ("Collision") : "") << endl;
-		if (result) {
-			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
-		}
-		else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
-		}
+		//c2Manifold manifold;
+		//c2AABBtoCapsuleManifold(aabb_mouse, capsule_player, &manifold);
+		////result = c2AABBtoCapsule(aabb_mouse, capsule_player);
+		//cout << ((manifold.count != 0) ? ("Collision") : "") << endl;
+		//cout << manifold.count << endl;
+		//if (manifold.count > 0) {
+		//	player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
+		//}
+		//else {
+		//	player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
+		//}
 
 		// Clear screen
 		window.clear();
 
 		// Draw the Players Current Animated Sprite
 		window.draw(player.getAnimatedSprite());
-		//window.draw(capsule);
-		draw(capsule_player, window);
-		//window.draw(polygon);
+		window.draw(capsule);
+		//draw(capsule_player, window);
+		window.draw(polygon);
 		window.draw(mouse);
 
 		// Update the window
