@@ -9,33 +9,6 @@
 
 using namespace std;
 
-void draw(const c2Capsule& capsule, RenderWindow& window, sf::Color color = sf::Color::White)
-{
-	sf::CircleShape circle(capsule.r);
-	circle.setOrigin(capsule.r, capsule.r);
-	circle.setFillColor(sf::Color::Transparent);
-	circle.setOutlineColor(color);
-	circle.setOutlineThickness(1.0f);
-
-	sf::Vertex topLine[] = {
-		sf::Vertex(sf::Vector2f(capsule.a.x, capsule.a.y + capsule.r), color),
-		sf::Vertex(sf::Vector2f(capsule.b.x, capsule.b.y + capsule.r), color)
-	};
-
-	sf::Vertex bottomLine[] = {
-		sf::Vertex(sf::Vector2f(capsule.a.x, capsule.a.y - capsule.r), color),
-		sf::Vertex(sf::Vector2f(capsule.b.x, capsule.b.y - capsule.r), color)
-	};
-
-	circle.setPosition(capsule.a.x, capsule.a.y);
-	window.draw(circle);
-	circle.setPosition(capsule.b.x, capsule.b.y);
-	window.draw(circle);
-
-	window.draw(topLine, 2, sf::Lines);
-	window.draw(bottomLine, 2, sf::Lines);
-}
-
 void draw(const c2Ray& ray, RenderWindow& window, sf::Color color = sf::Color::White)
 {
 	sf::Vertex shape[] = {
@@ -98,10 +71,27 @@ int main()
 	circle.setOrigin(50, 50);
 	circle.setPosition(700, 300);
 
+	sf::RectangleShape colision_output;
+	colision_output.setSize(sf::Vector2f(50, 50));
+	colision_output.setPosition(375, 550);
+	colision_output.setFillColor(sf::Color::Red);
+
 	//Setup mouse AABB
 	c2AABB aabb_mouse;
 	aabb_mouse.min = c2V(mouse.getPosition().x, mouse.getPosition().y);
 	aabb_mouse.max = c2V(mouse.getGlobalBounds().width, mouse.getGlobalBounds().height);
+
+	//mouse circle colisions
+	c2Circle circle_mouse;
+	circle_mouse.p = c2V(mouseCircle.getPosition().x, mouseCircle.getPosition().y);
+	circle_mouse.r = mouseCircle.getRadius();
+
+	mouse.setPosition(window.mapPixelToCoords(sf::Mouse::getPosition(window)));
+	c2Ray ray_mouse;
+	ray_mouse.p = c2V(window.mapPixelToCoords(sf::Mouse::getPosition(window)).x, window.mapPixelToCoords(sf::Mouse::getPosition(window)).y);
+	ray_mouse.d = c2Norm(c2V(0, -1));
+	ray_mouse.t = 50;
+
 
 	// Setup Players Default Animated Sprite
 	AnimatedSprite animated_sprite(sprite_sheet);
@@ -140,6 +130,10 @@ int main()
 	ray_player.d = c2Norm(c2V(0, 1));
 	ray_player.t = 50;
 
+	c2Circle circle_player;
+	circle_player.p = c2V(circle.getPosition().x, circle.getPosition().y);
+	circle_player.r = circle.getRadius();
+
 	// Setup the Player
 	Player player(animated_sprite);
 	Input input;
@@ -160,6 +154,10 @@ int main()
 		// Update mouse AABB
 		aabb_mouse.min = c2V(mouse.getPosition().x, mouse.getPosition().y);
 		aabb_mouse.max = c2V(mouse.getPosition().x + mouse.getGlobalBounds().width, mouse.getPosition().y + mouse.getGlobalBounds().width);
+
+		circle_mouse.p = c2V(mouseCircle.getPosition().x, mouseCircle.getPosition().y);
+
+		ray_mouse.p = c2V(window.mapPixelToCoords(sf::Mouse::getPosition(window)).x, window.mapPixelToCoords(sf::Mouse::getPosition(window)).y);
 
 		// Process events
 		sf::Event event;
@@ -207,20 +205,12 @@ int main()
 			if (result){
 				cout << "aabb" << endl;
 				collision = true;
-			player.getAnimatedSprite().setColor(sf::Color(255,0,0));
-			}
-			else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
 			}
 
 			result = c2AABBtoPoly(aabb_mouse, &poly_player, NULL);
 			if (result) {
 				cout << "poly" << endl;
 				collision = true;
-			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
-			}
-			else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
 			}
 
 			c2Manifold manifold;
@@ -228,10 +218,6 @@ int main()
 			if (manifold.count > 0) {
 				cout << "capsule" << endl;
 				collision = true;
-			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
-			}
-			else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
 			}
 
 			c2Raycast cast;
@@ -239,26 +225,81 @@ int main()
 			if (result) {
 				cout << "ray" << endl;
 				collision = true;
-			player.getAnimatedSprite().setColor(sf::Color(255, 0, 0));
-			}
-			else {
-			player.getAnimatedSprite().setColor(sf::Color(0, 255, 0));
 			}
 		}
 		
 		if (currShape == 2)
 		{
+			result = c2CircletoCircle(circle_player, circle_mouse);
+			if (result) {
+				cout << "circle" << endl;
+				collision = true;
+			}
 
+			result = c2CircletoAABB(circle_mouse, aabb_player);
+			if (result) {
+				cout << "aabb" << endl;
+				collision = true;
+			}
+
+			c2Raycast cast;
+			result = c2RaytoCircle(ray_player, circle_mouse, &cast);
+			if (result) {
+				cout << "ray" << endl;
+				collision = true;
+			}
+
+			result = c2CircletoCapsule(circle_mouse, capsule_player);
+			if (result) {
+				cout << "capsule" << endl;
+				collision = true;
+			}
+
+			result = c2CircletoPoly(circle_mouse, &poly_player, NULL);
+			if (result) {
+				cout << "poly" << endl;
+				collision = true;
+			}
 		}
 
 		if (currShape == 3)
 		{
+			c2Raycast cast;
+			result = c2RaytoCircle(ray_mouse, circle_player, &cast);
+			if (result) {
+				cout << "circle" << endl;
+				collision = true;
+			}
 
+			result = c2RaytoAABB(ray_mouse, aabb_player, &cast);
+			if (result) {
+				cout << "aabb" << endl;
+				collision = true;
+			}
+
+			result = c2RaytoCapsule(ray_mouse, capsule_player, &cast);
+			if (result) {
+				cout << "capsule" << endl;
+				collision = true;
+			}
+
+			
+			result = c2RaytoPoly(ray_mouse, &poly_player, NULL, &cast);
+			//result = c2CastRay(ray_mouse, &poly_player, NULL, C2_POLY, &cast);
+			if (result) {
+				cout << "aabb" << endl;
+				collision = true;
+			}
 		}
 
 		if (collision == false)
 		{
 			cout << "" << endl;
+			colision_output.setFillColor(sf::Color::Red);
+		}
+		else
+		{
+			colision_output.setFillColor(sf::Color::Green);
 		}
 
 		// Clear screen
@@ -267,10 +308,11 @@ int main()
 		// Draw the Players Current Animated Sprite
 		window.draw(player.getAnimatedSprite());
 		window.draw(capsule);
-		//draw(capsule_player, window);
 		draw(ray_player, window);
 		window.draw(polygon);
 		window.draw(circle);
+
+		window.draw(colision_output);
 
 		if (currShape == 1)
 		{
@@ -282,7 +324,7 @@ int main()
 		}
 		if (currShape == 3)
 		{
-			//window.draw(mouse);
+			draw(ray_mouse, window);
 		}
 
 		// Update the window
