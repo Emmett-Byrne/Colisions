@@ -124,6 +124,7 @@ int main()
 	poly_player.verts[1] = c2V(polygon.getPosition().x, polygon.getPosition().y + 65);
 	poly_player.verts[2] = c2V(polygon.getPosition().x + 60, polygon.getPosition().y + 140);
 	poly_player.verts[3] = c2V(polygon.getPosition().x + 150, polygon.getPosition().y + 60);
+	c2MakePoly(&poly_player);
 
 	c2Ray ray_player;
 	ray_player.p = c2V(50, 300);
@@ -287,7 +288,7 @@ int main()
 			result = c2RaytoPoly(ray_mouse, &poly_player, NULL, &cast);
 			//result = c2CastRay(ray_mouse, &poly_player, NULL, C2_POLY, &cast);
 			if (result) {
-				cout << "aabb" << endl;
+				cout << "poly" << endl;
 				collision = true;
 			}
 		}
